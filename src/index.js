@@ -6,40 +6,34 @@ let lastNotification = null;
 const keyDisplay = document.querySelector("#key");
 const newGameBtn = document.querySelector("#newGameBtn");
 
-function setNewKey() {
+const notify = (type, text) => {
+  if (lastNotification) lastNotification.close();
+  lastNotification = PNotify[type]({ text });
+};
+
+const setNewKey = () => {
   if (currentKeyIndex >= keys.length) {
-    if (lastNotification) lastNotification.close();
-    lastNotification = PNotify.success({ text: "Гру завершено! Вітаємо!" });
+    notify("success", "Гру завершено! Вітаємо!");
     keyDisplay.textContent = "✅";
-    return;
-  }
-  keyDisplay.textContent = keys[currentKeyIndex];
-}
-
-document.addEventListener("keydown", (event) => {
-  const pressedKey = event.key;
-
-  if (pressedKey === keys[currentKeyIndex]) {
-    currentKeyIndex++;
-    if (lastNotification) lastNotification.close();
-    lastNotification = PNotify.success({ text: `Правильно: "${pressedKey}"!` });
-    setNewKey();
   } else {
-    if (lastNotification) lastNotification.close();
-    lastNotification = PNotify.error({
-      text: `Неправильно! Очікується: "${keys[currentKeyIndex]}"`,
-    });
+    keyDisplay.textContent = keys[currentKeyIndex];
   }
+};
+
+document.addEventListener("keydown", ({ key }) => {
+  const expected = keys[currentKeyIndex];
+  key === expected
+    ? (currentKeyIndex++,
+      notify("success", `Правильно: "${key}"!`),
+      setNewKey())
+    : notify("error", `Неправильно!"`);
 });
 
-document.addEventListener("keypress", (event) => {
-  event.preventDefault();
-});
+document.addEventListener("keypress", (e) => e.preventDefault());
 
 newGameBtn.addEventListener("click", () => {
   currentKeyIndex = 0;
-  if (lastNotification) lastNotification.close();
-  lastNotification = PNotify.info({ text: "Нова гра розпочата!" });
+  notify("info", "Нова гра розпочата!");
   setNewKey();
 });
 
